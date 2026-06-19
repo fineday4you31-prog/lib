@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>연수 강의 서비스 품질 기대감</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#fff;--bg2:#f7f6f3;--bg3:#efefeb;--text:#1a1a1a;--text2:#5a5a5a;--text3:#999;--border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.22);--blue:#3266ad;--orange:#D85A30;--r:10px;--rs:6px}
+@media(prefers-color-scheme:dark){:root{--bg:#1e1e1e;--bg2:#2a2a2a;--bg3:#333;--text:#f0f0f0;--text2:#aaa;--text3:#666;--border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.2)}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:var(--bg3);color:var(--text);min-height:100vh}
+.page{display:none;align-items:center;justify-content:center;min-height:100vh;padding:1.5rem}
+.page.on{display:flex}
+.box{background:var(--bg);border-radius:var(--r);border:.5px solid var(--border);padding:2rem;max-width:500px;width:100%}
+h1{font-size:20px;font-weight:600;margin-bottom:6px}
+h2{font-size:16px;font-weight:600;margin-bottom:1rem}
+.sub{font-size:13px;color:var(--text2);margin-bottom:1.5rem;line-height:1.6}
+.field{margin-bottom:1rem}
+.field label{font-size:12px;color:var(--text2);display:block;margin-bottom:4px;font-weight:500}
+.field input{width:100%;padding:8px 12px;border:.5px solid var(--border2);border-radius:var(--rs);font-size:14px;background:var(--bg);color:var(--text)}
+.field input:focus{outline:none;border-color:var(--blue)}
+.btn{display:flex;align-items:center;justify-content:center;width:100%;padding:10px;margin-bottom:8px;border:.5px solid var(--border2);border-radius:var(--rs);background:var(--bg);color:var(--text);font-size:14px;cursor:pointer;transition:all .15s}
+.btn:hover{background:var(--bg2)}
+.btn.primary{background:var(--text);color:var(--bg);border-color:var(--text)}
+.btn.primary:hover{opacity:.85}
+.btn.blue{border-color:var(--blue);color:var(--blue)}
+.btn.blue:hover{background:#E6F1FB}
+.btn.danger{border-color:#E24B4A;color:#A32D2D}
+.btn.danger:hover{background:#FCEBEB}
+.btn.sm{width:auto;padding:6px 14px;font-size:12px;margin:0}
+.msg{font-size:13px;padding:8px 12px;border-radius:var(--rs);margin-top:8px}
+.msg.ok{background:#EAF3DE;color:#3B6D11}
+.msg.err{background:#FCEBEB;color:#A32D2D}
+.msg.info{background:#E6F1FB;color:#185FA5}
+.divider{display:flex;align-items:center;gap:8px;margin:1rem 0;font-size:12px;color:var(--text3)}
+.divider::before,.divider::after{content:'';flex:1;border-top:.5px solid var(--border)}
+
+/* 앱 */
+#app{display:none;min-height:100vh}
+#app.on{display:block}
+.topbar{background:var(--bg);border-bottom:.5px solid var(--border);height:50px;padding:0 1.25rem;display:flex;align-items:center;position:sticky;top:0;z-index:100}
+.topbar-title{font-size:14px;font-weight:600;margin-right:auto}
+.tab{height:100%;padding:0 13px;border:none;background:none;color:var(--text2);font-size:13px;cursor:pointer;border-bottom:2px solid transparent}
+.tab.on{color:var(--text);border-bottom-color:var(--text);font-weight:500}
+.content{max-width:700px;margin:0 auto;padding:1.25rem 1rem 3rem}
+.hide{display:none!important}
+.card{background:var(--bg);border:.5px solid var(--border);border-radius:var(--r);padding:1.25rem 1.5rem;margin-bottom:1rem}
+.card-title{font-size:14px;font-weight:500;margin-bottom:.75rem}
+
+/* 수강생 입력 UI */
+.survey-item{background:var(--bg2);border-radius:var(--r);padding:1.25rem;margin-bottom:1rem;border:.5px solid var(--border)}
+.survey-item h3{font-size:15px;font-weight:600;margin-bottom:4px}
+.survey-item .desc{font-size:13px;color:var(--text2);margin-bottom:1rem;line-height:1.6}
+.score-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:6px}
+.score-row{display:flex;gap:8px;align-items:center}
+.score-section{flex:1}
+.score-section .slabel{font-size:12px;font-weight:500;margin-bottom:6px;text-align:center}
+.score-section .slabel.asis{color:var(--blue)}
+.score-section .slabel.tobe{color:var(--orange)}
+.stars{display:flex;gap:4px;justify-content:center}
+.star-btn{width:40px;height:40px;border-radius:var(--rs);border:.5px solid var(--border);background:var(--bg);font-size:18px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;color:var(--text3)}
+.star-btn:hover{border-color:var(--border2)}
+.star-btn.active-asis{background:#E6F1FB;border-color:var(--blue);color:var(--blue);font-weight:600}
+.star-btn.active-tobe{background:#FDF0EB;border-color:var(--orange);color:var(--orange);font-weight:600}
+.score-vs{font-size:20px;color:var(--text3);padding:0 4px;margin-top:20px}
+.name-row{display:flex;gap:8px;align-items:center;margin-bottom:1.5rem}
+.nl{font-size:13px;color:var(--text2);white-space:nowrap}
+.ni{flex:1;padding:7px 11px;border:.5px solid var(--border2);border-radius:var(--rs);font-size:14px;background:var(--bg);color:var(--text)}
+.ni:focus{outline:none;border-color:var(--blue)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:1.5rem}
+.acts .btn{width:auto;padding:7px 18px;margin:0}
+
+/* 대시보드 */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;margin-bottom:1rem}
+.stat{background:var(--bg2);border-radius:var(--rs);padding:10px 12px}
+.stat-n{font-size:22px;font-weight:600}
+.stat-l{font-size:11px;color:var(--text2);margin-top:2px}
+.radar-wrap{width:100%;max-width:480px;margin:0 auto}
+.legend{display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:12px;color:var(--text2)}
+.legend span{display:flex;align-items:center;gap:5px}
+.ld{width:16px;height:3px;border-radius:2px}
+.hr{border:none;border-top:.5px solid var(--border);margin:1.25rem 0}
+.live{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;background:#EAF3DE;color:#3B6D11;margin-left:8px}
+.empty{text-align:center;color:var(--text2);font-size:14px;padding:2.5rem 1rem}
+.itop{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px}
+.sbox{background:var(--bg2);border:1.5px dashed var(--border2);border-radius:var(--rs);padding:14px;margin-bottom:1rem}
+.sbox p{font-size:12px;color:var(--text2);margin-bottom:8px;line-height:1.6}
+.slink{font-size:11px;color:var(--blue);word-break:break-all;background:var(--bg);border:.5px solid var(--border);border-radius:var(--rs);padding:8px 10px;margin-bottom:8px;display:block}
+.mlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:8px;margin-bottom:.5rem}
+.mc{background:var(--bg2);border-radius:var(--rs);padding:10px 12px;cursor:pointer;border:.5px solid var(--border)}
+.mc:hover{border-color:var(--border2);background:var(--bg)}
+.mc.sel{border-color:var(--text);background:var(--bg)}
+.mc-name{font-size:13px;font-weight:500}
+.mc-meta{font-size:11px;color:var(--text2);margin-top:3px}
+.avg-table{width:100%;border-collapse:collapse;margin-top:.5rem}
+.avg-table th{font-size:12px;color:var(--text2);font-weight:500;padding:6px 8px;border-bottom:.5px solid var(--border);text-align:left}
+.avg-table td{font-size:13px;padding:7px 8px;border-bottom:.5px solid var(--border)}
+.saved-item{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border-radius:var(--rs);padding:9px 12px;margin-bottom:6px;border:.5px solid var(--border)}
+</style>
+</head>
+<body>
+
+<!-- 시작 -->
+<div id="p-start" class="page on">
+  <div class="box">
+    <h1>📋 연수 강의 서비스 품질 기대감</h1>
+    <p class="sub">SERVQUAL 5요소 기반<br>강의 시작 전 기대감 조사 (As is → To be)</p>
+    <button class="btn primary" onclick="go('p-create')">➕ 새 조사 만들기 <small style="font-size:11px;opacity:.7">(강사용)</small></button>
+    <button class="btn blue" onclick="go('p-restore');buildRestoreList()">📂 이전 조사 불러오기 <small style="font-size:11px;opacity:.7">(강사용)</small></button>
+    <div class="divider">수강생</div>
+    <button class="btn" onclick="goJoinIfUrl()">📝 조사 참여하기 <small style="font-size:11px;opacity:.7">(수강생용)</small></button>
+  </div>
+</div>
+
+<!-- 강사: 새 조사 -->
+<div id="p-create" class="page">
+  <div class="box">
+    <h1>새 조사 만들기</h1>
+    <p class="sub">강의명을 입력하면 수강생 참여 링크가 생성됩니다.</p>
+    <div class="field"><label>강의명</label><input type="text" id="create-title" placeholder="예: 어린이 독서 프로그램 기획 연수"></div>
+    <div class="field"><label>강사 이름</label><input type="text" id="create-name" placeholder="예: 홍길동"></div>
+    <button class="btn primary" onclick="createSession()">조사 생성하기</button>
+    <button class="btn" onclick="go('p-start')">← 뒤로</button>
+    <div id="create-msg"></div>
+  </div>
+</div>
+
+<!-- 강사: 이전 조사 -->
+<div id="p-restore" class="page">
+  <div class="box">
+    <h1>이전 조사 불러오기</h1>
+    <div id="restore-list"></div>
+    <div class="field" style="margin-top:.5rem"><label>공유 링크 직접 붙여넣기</label><input type="text" id="restore-link" placeholder="https://...?b=..."></div>
+    <button class="btn primary" onclick="restoreByLink()">불러오기</button>
+    <button class="btn" onclick="go('p-start')">← 뒤로</button>
+    <div id="restore-msg"></div>
+  </div>
+</div>
+
+<!-- 수강생: 입장 -->
+<div id="p-join" class="page">
+  <div class="box">
+    <h1>조사 참여</h1>
+    <p class="sub">강사에게 받은 링크로 접속하셨습니다.<br>이름을 입력하고 참여하세요.</p>
+    <div class="field"><label>내 이름 / 기관</label><input type="text" id="join-name" placeholder="예: 김사서 / 부산시립도서관"></div>
+    <button class="btn primary" onclick="joinSession()">참여하기</button>
+    <button class="btn" onclick="go('p-start')">← 뒤로</button>
+    <div id="join-msg"></div>
+  </div>
+</div>
+
+<!-- 앱 -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-title" id="app-title">📋 연수 강의 서비스 품질 기대감</div>
+    <button class="tab on" id="tb-s" onclick="showTab('s')">수강생 입력</button>
+    <button class="tab" id="tb-i" onclick="showTab('i')">강사 대시보드</button>
+  </div>
+
+  <!-- 수강생 탭 -->
+  <div id="pane-s" class="content">
+    <div class="card">
+      <div class="card-title" id="survey-title-label"></div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:1.25rem;line-height:1.7">
+        각 항목에 대해 <b>기존 강의의 느낌(As is)</b>과 <b>오늘 강의에 대한 기대(To be)</b>를<br>
+        1~5점으로 눌러서 선택해 주세요.
+      </p>
+      <div class="name-row">
+        <span class="nl">이름 / 기관</span>
+        <input class="ni" id="sname" placeholder="예: 김사서 / 부산시립도서관">
+      </div>
+      <div id="survey-items"></div>
+      <div class="acts">
+        <button class="btn primary" onclick="submitStudent()">✓ 제출하기</button>
+        <button class="btn" onclick="resetForm()">↺ 초기화</button>
+      </div>
+      <div id="smsg"></div>
+    </div>
+  </div>
+
+  <!-- 강사 탭 -->
+  <div id="pane-i" class="content hide">
+    <div class="card">
+      <div class="itop">
+        <div><span class="card-title" style="margin:0">강사 대시보드</span><span class="live">● 실시간</span></div>
+        <div style="display:flex;gap:6px">
+          <button class="btn sm" onclick="loadInstructor()">↺ 새로고침</button>
+          <button class="btn sm danger" onclick="clearAll()">🗑 전체 삭제</button>
+        </div>
+      </div>
+      <div class="sbox">
+        <p>아래 링크를 수강생에게 공유하세요. 링크 클릭 후 이름만 입력하면 바로 참여합니다.</p>
+        <span class="slink" id="share-link"></span>
+        <button class="btn sm" onclick="copyLink()">📋 링크 복사</button>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="stat-n" id="st-n">-</div><div class="stat-l">참여 인원</div></div>
+        <div class="stat"><div class="stat-n" id="st-a">-</div><div class="stat-l">평균 As is</div></div>
+        <div class="stat"><div class="stat-n" id="st-t">-</div><div class="stat-l">평균 To be</div></div>
+        <div class="stat"><div class="stat-n" id="st-gap">-</div><div class="stat-l">평균 기대 상승</div></div>
+      </div>
+      <div id="inst-body"><div class="empty">📭 아직 참여한 데이터가 없습니다.</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY = "$2a$10$ORjCA7N49qVYMlPWQ6C4dOHpzVegL1wHHcphEO6Ah3PI4KSdhBx2K";
+const API = "https://api.jsonbin.io/v3/b";
+
+// SERVQUAL 5요소
+const FACTORS = [
+  { id:"reliability",   name:"신뢰성",   desc:"강사가 약속한 내용을 정확하고 믿음직하게 전달할 것이다." },
+  { id:"responsiveness",name:"반응성",   desc:"강사가 수강생의 질문과 요구에 즉각적으로 응답할 것이다." },
+  { id:"assurance",     name:"확신성",   desc:"강사의 지식과 전문성이 수강생에게 신뢰와 확신을 줄 것이다." },
+  { id:"empathy",       name:"공감성",   desc:"강사가 수강생 개개인의 상황과 필요를 이해하고 배려할 것이다." },
+  { id:"tangibles",     name:"유형성",   desc:"강의 자료, 환경, 매체 등 눈에 보이는 요소가 잘 갖춰져 있을 것이다." }
+];
+
+let BIN="", USER="", TITLE="", timer=null;
+let scores = {}; // { factorId: { asis: 0, tobe: 0 } }
+
+/* JSONBin */
+function hdrs(w){const h={"X-Master-Key":KEY};if(w)h["Content-Type"]="application/json";else h["X-Bin-Meta"]="false";return h;}
+async function binCreate(data){
+  const r=await fetch(API,{method:"POST",headers:{...hdrs(true),"X-Bin-Name":"quality-"+Date.now()},body:JSON.stringify(data)});
+  const j=await r.json();
+  if(!r.ok) throw new Error(j.message||"생성실패 "+r.status);
+  return j.metadata.id;
+}
+async function binRead(){
+  const r=await fetch(API+"/"+BIN+"/latest",{headers:hdrs(false)});
+  const j=await r.json();
+  if(!r.ok) throw new Error(j.message||"읽기실패 "+r.status);
+  return j.record!==undefined?j.record:j;
+}
+async function binWrite(data){
+  const r=await fetch(API+"/"+BIN,{method:"PUT",headers:hdrs(true),body:JSON.stringify(data)});
+  if(!r.ok){const j=await r.json();throw new Error(j.message||"쓰기실패 "+r.status);}
+}
+
+/* 화면 */
+function go(id){
+  document.querySelectorAll(".page").forEach(el=>el.classList.remove("on"));
+  document.getElementById("app").classList.remove("on");
+  const el=document.getElementById(id);
+  if(el) el.classList.add("on");
+}
+function goApp(){
+  document.querySelectorAll(".page").forEach(el=>el.classList.remove("on"));
+  document.getElementById("app").classList.add("on");
+}
+
+/* 로컬 저장 */
+function getSaved(){try{return JSON.parse(localStorage.getItem("quality_s")||"[]")}catch(e){return[]}}
+function addSaved(binId,label){
+  const list=getSaved().filter(s=>s.b!==binId);
+  list.unshift({b:binId,label,d:new Date().toLocaleDateString("ko-KR")});
+  localStorage.setItem("quality_s",JSON.stringify(list.slice(0,10)));
+}
+
+/* 강사: 새 조사 */
+async function createSession(){
+  const title=document.getElementById("create-title").value.trim()||"사서 연수 강의";
+  const name=document.getElementById("create-name").value.trim()||"강사";
+  msg("create-msg","생성 중...","info");
+  try{
+    BIN=await binCreate({title,submissions:[]});
+    TITLE=title; USER=name;
+    addSaved(BIN,title+" · "+new Date().toLocaleDateString("ko-KR"));
+    enterApp(true);
+  }catch(e){msg("create-msg","❌ "+e.message,"err");}
+}
+
+/* 강사: 이전 조사 복원 */
+function buildRestoreList(){
+  const saved=getSaved();
+  const el=document.getElementById("restore-list");
+  if(!saved.length){el.innerHTML='<p style="font-size:13px;color:var(--text2);margin-bottom:1rem">저장된 조사가 없습니다.</p>';return;}
+  el.innerHTML=saved.map((s,i)=>`<div class="saved-item"><div><div style="font-size:13px;font-weight:500">${s.label}</div><div style="font-size:11px;color:var(--text3)">${s.d}</div></div><button class="btn sm" onclick="restoreIdx(${i})">불러오기</button></div>`).join("");
+}
+async function restoreIdx(i){
+  const s=getSaved()[i];if(!s)return;
+  msg("restore-msg","불러오는 중...","info");
+  try{
+    BIN=s.b;
+    const rec=await binRead();
+    TITLE=rec.title||"사서 연수 강의"; USER="강사";
+    enterApp(true);
+  }catch(e){msg("restore-msg","❌ "+e.message,"err");BIN="";}
+}
+async function restoreByLink(){
+  const raw=document.getElementById("restore-link").value.trim();
+  let binId="";
+  try{binId=new URL(raw).searchParams.get("b")||"";}catch(e){binId=raw;}
+  if(!binId){msg("restore-msg","링크를 붙여넣어 주세요.","err");return;}
+  msg("restore-msg","확인 중...","info");
+  try{
+    BIN=binId;
+    const rec=await binRead();
+    TITLE=rec.title||"사서 연수 강의"; USER="강사";
+    addSaved(BIN,TITLE+" (복원) · "+new Date().toLocaleDateString("ko-KR"));
+    enterApp(true);
+  }catch(e){msg("restore-msg","❌ "+e.message,"err");BIN="";}
+}
+
+/* 수강생: 입장 */
+function goJoinIfUrl(){
+  const b=new URLSearchParams(location.search).get("b");
+  if(b){BIN=b;go("p-join");}
+  else alert("강사에게 받은 링크로 접속해 주세요.");
+}
+async function joinSession(){
+  const name=document.getElementById("join-name").value.trim();
+  if(!name){msg("join-msg","이름을 입력해주세요.","err");return;}
+  msg("join-msg","확인 중...","info");
+  try{
+    const rec=await binRead();
+    TITLE=rec.title||"사서 연수 강의";
+    USER=name; enterApp(false);
+  }catch(e){msg("join-msg","❌ "+e.message,"err");}
+}
+
+/* 앱 진입 */
+function enterApp(isInst){
+  document.getElementById("app-title").textContent="📋 "+TITLE;
+  document.getElementById("survey-title-label").textContent="";
+  const url=location.origin+location.pathname+"?b="+BIN;
+  document.getElementById("share-link").textContent=url;
+  document.getElementById("sname").value=USER;
+  buildSurvey();
+  goApp();
+  showTab(isInst?"i":"s");
+}
+function copyLink(){
+  const url=document.getElementById("share-link").textContent;
+  navigator.clipboard.writeText(url)
+    .then(()=>alert("✅ 링크 복사 완료!\n수강생에게 카카오톡으로 보내주세요.\n\n수강생은 링크 클릭 → 이름 입력 → 바로 참여!"))
+    .catch(()=>prompt("아래 링크를 복사하세요:",url));
+}
+
+/* 수강생 입력 폼 */
+function buildSurvey(){
+  scores={};
+  FACTORS.forEach(f=>{scores[f.id]={asis:0,tobe:0};});
+  const c=document.getElementById("survey-items");
+  c.innerHTML=FACTORS.map(f=>`
+    <div class="survey-item">
+      <h3>${f.name}</h3>
+      <p class="desc">${f.desc}</p>
+      <div class="score-row">
+        <div class="score-section">
+          <div class="slabel asis">As is — 기존 강의의 느낌</div>
+          <div class="stars" id="asis-${f.id}">
+            ${[1,2,3,4,5].map(v=>`<button class="star-btn" onclick="setScore('${f.id}','asis',${v})" id="asis-${f.id}-${v}">${v}</button>`).join("")}
+          </div>
+        </div>
+        <div class="score-vs">→</div>
+        <div class="score-section">
+          <div class="slabel tobe">To be — 오늘 강의 기대</div>
+          <div class="stars" id="tobe-${f.id}">
+            ${[1,2,3,4,5].map(v=>`<button class="star-btn" onclick="setScore('${f.id}','tobe',${v})" id="tobe-${f.id}-${v}">${v}</button>`).join("")}
+          </div>
+        </div>
+      </div>
+    </div>`).join("");
+}
+
+function setScore(fid, type, val){
+  scores[fid][type]=val;
+  // 버튼 스타일 업데이트
+  for(let v=1;v<=5;v++){
+    const btn=document.getElementById(`${type}-${fid}-${v}`);
+    if(!btn)continue;
+    btn.classList.remove("active-asis","active-tobe");
+    if(v<=val) btn.classList.add(type==="asis"?"active-asis":"active-tobe");
+  }
+}
+
+function getForm(){
+  const name=document.getElementById("sname").value.trim()||"익명";
+  const asis=FACTORS.map(f=>scores[f.id]?.asis||0);
+  const tobe=FACTORS.map(f=>scores[f.id]?.tobe||0);
+  return{name,asis,tobe};
+}
+
+async function submitStudent(){
+  const d=getForm();
+  // 미입력 확인
+  const missing=FACTORS.filter((_,i)=>d.asis[i]===0||d.tobe[i]===0).map(f=>f.name);
+  if(missing.length){msg("smsg","미입력 항목: "+missing.join(", "),"err");return;}
+  msg("smsg","저장 중...","info");
+  try{
+    let subs=[];
+    try{const rec=await binRead();subs=Array.isArray(rec.submissions)?rec.submissions:[];}catch(e){subs=[];}
+    const idx=subs.findIndex(x=>x.name===d.name);
+    d.at=new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"});
+    if(idx>=0)subs[idx]=d;else subs.push(d);
+    // title도 함께 저장
+    const rec2=await binRead().catch(()=>({title:TITLE}));
+    await binWrite({title:rec2.title||TITLE,submissions:subs});
+    msg("smsg","✓ 제출 완료! ("+d.name+") 감사합니다 😊","ok");
+  }catch(e){msg("smsg","❌ "+e.message,"err");}
+}
+
+function resetForm(){
+  document.getElementById("sname").value=USER||"";
+  buildSurvey();
+  document.getElementById("smsg").innerHTML="";
+}
+
+/* 차트 */
+function drawRadar(id,labels,a,t){
+  const c=document.getElementById(id);if(!c)return;
+  const ex=Chart.getChart(c);if(ex)ex.destroy();
+  new Chart(c,{type:"radar",data:{labels,datasets:[
+    {label:"As is (기존 강의)",data:a,borderColor:"#3266ad",backgroundColor:"rgba(50,102,173,0.1)",borderWidth:2,pointBackgroundColor:"#3266ad",borderDash:[5,3]},
+    {label:"To be (오늘 기대)",data:t,borderColor:"#D85A30",backgroundColor:"rgba(216,90,48,0.1)",borderWidth:2,pointBackgroundColor:"#D85A30"}
+  ]},options:{responsive:true,maintainAspectRatio:true,
+    scales:{r:{min:0,max:5,ticks:{stepSize:1,font:{size:10}},pointLabels:{font:{size:13,weight:"500"}}}},
+    plugins:{legend:{position:"bottom",labels:{font:{size:12},padding:16}}}}});
+}
+
+/* 강사 대시보드 */
+async function loadInstructor(){
+  if(!BIN)return;
+  try{
+    const rec=await binRead();
+    renderInst(Array.isArray(rec.submissions)?rec.submissions:[]);
+  }catch(e){console.error(e);renderInst([]);}
+}
+
+function renderInst(arr){
+  document.getElementById("st-n").textContent=arr.length;
+  if(!arr.length){
+    ["st-a","st-t","st-gap"].forEach(id=>document.getElementById(id).textContent="-");
+    document.getElementById("inst-body").innerHTML='<div class="empty">📭 아직 참여한 데이터가 없습니다.</div>';
+    return;
+  }
+  const allA=arr.flatMap(x=>x.asis), allT=arr.flatMap(x=>x.tobe);
+  const avgA=(allA.reduce((a,b)=>a+b,0)/allA.length).toFixed(2);
+  const avgT=(allT.reduce((a,b)=>a+b,0)/allT.length).toFixed(2);
+  document.getElementById("st-a").textContent=avgA;
+  document.getElementById("st-t").textContent=avgT;
+  document.getElementById("st-gap").textContent="+"+(avgT-avgA).toFixed(2);
+
+  // 요소별 전체 평균
+  const labels=FACTORS.map(f=>f.name);
+  const avgAs=FACTORS.map((_,ki)=>{const v=arr.map(x=>x.asis[ki]);return+(v.reduce((a,b)=>a+b,0)/v.length).toFixed(2)});
+  const avgTs=FACTORS.map((_,ki)=>{const v=arr.map(x=>x.tobe[ki]);return+(v.reduce((a,b)=>a+b,0)/v.length).toFixed(2)});
+
+  // 요소별 평균 표
+  const tableRows=FACTORS.map((f,i)=>{
+    const gap=avgTs[i]-avgAs[i];
+    const color=gap>0?"#3B6D11":gap<0?"#A32D2D":"var(--text2)";
+    return`<tr>
+      <td style="padding:7px 8px;font-size:13px;font-weight:500">${f.name}</td>
+      <td style="padding:7px 8px;text-align:center;font-size:13px;color:var(--blue)">${avgAs[i]}</td>
+      <td style="padding:7px 8px;text-align:center;font-size:13px;color:var(--orange)">${avgTs[i]}</td>
+      <td style="padding:7px 8px;text-align:center;font-size:13px;color:${color};font-weight:500">${gap>0?"+":""}${gap.toFixed(2)}</td>
+    </tr>`;
+  }).join("");
+
+  // 개인 목록
+  const mems=arr.map((x,i)=>{
+    const aAvg=(x.asis.reduce((a,b)=>a+b,0)/5).toFixed(1);
+    const tAvg=(x.tobe.reduce((a,b)=>a+b,0)/5).toFixed(1);
+    return`<div class="mc" onclick="showMember(${i})" id="mc${i}">
+      <div class="mc-name">${x.name}</div>
+      <div class="mc-meta">${x.at||""} · As is ${aAvg} / To be ${tAvg}</div>
+    </div>`;
+  }).join("");
+
+  document.getElementById("inst-body").innerHTML=`
+    <div class="card-title">전체 평균 방사형 그래프 (${arr.length}명)</div>
+    <div class="radar-wrap"><canvas id="avg-radar"></canvas></div>
+    <hr class="hr">
+    <div class="card-title">요소별 평균 점수</div>
+    <table class="avg-table">
+      <thead><tr>
+        <th>요소</th>
+        <th style="text-align:center;color:var(--blue)">As is</th>
+        <th style="text-align:center;color:var(--orange)">To be</th>
+        <th style="text-align:center">기대 변화</th>
+      </tr></thead>
+      <tbody>${tableRows}</tbody>
+    </table>
+    <hr class="hr">
+    <div class="card-title">참여자 현황 — 이름 클릭 시 개인 그래프</div>
+    <div class="mlist">${mems}</div>
+    <div id="mdetail" class="hide">
+      <hr class="hr">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+        <div class="card-title" id="mdetail-title" style="margin:0"></div>
+        <div style="display:flex;gap:6px">
+          <button class="btn sm" onclick="stepMember(-1)">◀ 이전</button>
+          <button class="btn sm" onclick="stepMember(1)">다음 ▶</button>
+        </div>
+      </div>
+      <div class="radar-wrap"><canvas id="member-radar"></canvas></div>
+      <div id="member-table" style="margin-top:1rem"></div>
+    </div>`;
+
+  setTimeout(()=>drawRadar("avg-radar",labels,avgAs,avgTs),60);
+  window._idata=arr; window._midx=-1;
+}
+
+function showMember(i){
+  window._midx=i;
+  document.querySelectorAll(".mc").forEach(e=>e.classList.remove("sel"));
+  const mc=document.getElementById("mc"+i);if(mc)mc.classList.add("sel");
+  const d=(window._idata||[])[i];if(!d)return;
+  const det=document.getElementById("mdetail");if(!det)return;
+  det.classList.remove("hide");
+  document.getElementById("mdetail-title").textContent=d.name+"의 응답";
+  const labels=FACTORS.map(f=>f.name);
+  setTimeout(()=>drawRadar("member-radar",labels,d.asis,d.tobe),60);
+  const rows=FACTORS.map((f,i)=>{
+    const gap=d.tobe[i]-d.asis[i];
+    return`<tr>
+      <td style="padding:6px 8px;font-size:13px">${f.name}</td>
+      <td style="padding:6px 8px;text-align:center;font-size:13px;color:var(--blue)">${d.asis[i]}점</td>
+      <td style="padding:6px 8px;text-align:center;font-size:13px;color:var(--orange)">${d.tobe[i]}점</td>
+      <td style="padding:6px 8px;text-align:center;font-size:13px;color:${gap>0?"#3B6D11":gap<0?"#A32D2D":"var(--text2)"};font-weight:500">${gap>0?"+":""}${gap}</td>
+    </tr>`;
+  }).join("");
+  document.getElementById("member-table").innerHTML=`
+    <table class="avg-table">
+      <thead><tr><th>요소</th><th style="text-align:center;color:var(--blue)">As is</th><th style="text-align:center;color:var(--orange)">To be</th><th style="text-align:center">변화</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function stepMember(dir){
+  const arr=window._idata||[];if(!arr.length)return;
+  const next=((window._midx||0)+dir+arr.length)%arr.length;
+  showMember(next);
+}
+
+async function clearAll(){
+  if(!confirm("모든 참여 데이터를 삭제하시겠습니까?"))return;
+  const rec=await binRead().catch(()=>({title:TITLE}));
+  await binWrite({title:rec.title||TITLE,submissions:[]});
+  loadInstructor();
+}
+
+/* 탭 */
+function showTab(t){
+  ["s","i"].forEach(id=>{
+    document.getElementById("tb-"+id).classList.toggle("on",id===t);
+    document.getElementById("pane-"+id).classList.toggle("hide",id!==t);
+  });
+  if(t==="i"){loadInstructor();if(timer)clearInterval(timer);timer=setInterval(loadInstructor,20000);}
+  else{if(timer){clearInterval(timer);timer=null;}}
+}
+
+function msg(id,txt,type){
+  const el=document.getElementById(id);if(!el)return;
+  el.innerHTML=`<div class="msg ${type}">${txt}</div>`;
+  if(type!=="info")setTimeout(()=>{el.innerHTML="";},5000);
+}
+
+window.addEventListener("DOMContentLoaded",()=>{
+  const b=new URLSearchParams(location.search).get("b");
+  if(b){BIN=b;go("p-join");}
+  else go("p-start");
+});
+</script>
+</body>
+</html>
